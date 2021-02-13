@@ -22,13 +22,16 @@ interface Blockchain {
 
 class MyBlockchain {
   chainData: Blockchain = { length: 0, chain: [] };
+  difficulty = "00";
 
   computeHash = (block: Block): string => {
-    let blockString = JSON.stringify(block);
-    return require("crypto")
+    let blockString = this.difficulty + JSON.stringify(block);
+    let proof = require("crypto")
       .createHash("sha256")
       .update(blockString)
       .digest("hex");
+
+    return proof;
   };
 
   createGenesisBlock = (): void => {
@@ -49,6 +52,16 @@ class MyBlockchain {
     });
   };
 
+  proofOfWork = (block: Block): string => {
+    let hash = this.computeHash(block);
+    while (!hash.slice(0, this.difficulty.length).includes(this.difficulty)) {
+      block.nonce++;
+      hash = this.proofOfWork(block);
+    }
+
+    return hash;
+  };
+
   createNewBlock = (transaction: Transaction): void => {
     let newBlock: Block = {
       index: this.lastBlock().index + 1,
@@ -59,7 +72,7 @@ class MyBlockchain {
       hash: "",
     };
 
-    newBlock.hash = this.computeHash(newBlock);
+    newBlock.hash = this.proofOfWork(newBlock);
     let chain = [...this.chainData.chain, newBlock];
 
     Object.assign(this.chainData, {
@@ -72,24 +85,34 @@ class MyBlockchain {
     return this.chainData.chain[this.chainData.length - 1];
   };
 
+  lastTransaction = (): Transaction => {
+    return this.lastBlock().transactions[
+      this.lastBlock().transactions.length - 1
+    ];
+  };
+
   addTransaction = (transaction: Transaction): void => {
     if (
       this.lastBlock().index === 0 ||
-      this.lastBlock().transactions.length > 100
+      this.lastBlock().transactions.length === 100
     ) {
       this.createNewBlock(transaction);
+    } else {
+      this.lastBlock().transactions.push(transaction);
     }
-
-    this.lastBlock().transactions.push(transaction);
   };
 
   toString = (): void => {
     console.dir(this.chainData);
   };
 }
-
 const blockChain = new MyBlockchain();
 blockChain.createGenesisBlock();
-MOCK_DATA.forEach((transaction) => blockChain.addTransaction(transaction));
 
+console.time("proof");
+
+MOCK_DATA.forEach((transaction) => blockChain.addTransaction(transaction));
 blockChain.toString();
+console.dir(blockChain.lastBlock().hash);
+
+console.timeEnd("proof");
