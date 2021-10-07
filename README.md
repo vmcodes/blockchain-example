@@ -15,3 +15,5 @@ Based on: [how-to-build-a-blockchain-in-python](https://www.activestate.com/blog
   ]
 }
 ```
+
+TODO: update difficulty
