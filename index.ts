@@ -100,7 +100,7 @@ class MyBlockchain {
   };
 
   /**
-   * if genesis block or under 100 transactions,
+   * if genesis block or equal to 100 transactions,
    * then create new block, else append to current block
    */
   addTransaction = (transaction: Transaction): void => {
