@@ -6,19 +6,19 @@ interface Transaction {
   amount: number;
 }
 
-interface Block {
+type Block = {
   index: number;
   transactions: Array<Transaction>;
   timestamp: number;
   previousHash: string;
   nonce: number;
   hash: string;
-}
+};
 
-interface Blockchain {
+type Blockchain = {
   length: number;
   chain: Array<Block>;
-}
+};
 
 class MyBlockchain {
   chainData: Blockchain = { length: 0, chain: [] };
@@ -34,6 +34,7 @@ class MyBlockchain {
     return proof;
   };
 
+  // initialize first block and add to blockchain
   createGenesisBlock = (): void => {
     let genesisBlock: Block = {
       index: 0,
@@ -52,6 +53,10 @@ class MyBlockchain {
     });
   };
 
+  /**
+   * recursively compute PoW
+   * and return a hash
+   */
   proofOfWork = (block: Block): string => {
     let hash = this.computeHash(block);
     while (!hash.slice(0, this.difficulty.length).includes(this.difficulty)) {
@@ -62,6 +67,7 @@ class MyBlockchain {
     return hash;
   };
 
+  // creates new block and appends it to the initial blockchain
   createNewBlock = (transaction: Transaction): void => {
     let newBlock: Block = {
       index: this.lastBlock().index + 1,
@@ -81,16 +87,22 @@ class MyBlockchain {
     });
   };
 
+  // return last block
   lastBlock = (): Block => {
     return this.chainData.chain[this.chainData.length - 1];
   };
 
+  // return last transaction
   lastTransaction = (): Transaction => {
     return this.lastBlock().transactions[
       this.lastBlock().transactions.length - 1
     ];
   };
 
+  /**
+   * if genesis block or under 100 transactions,
+   * then create new block, else append to current block
+   */
   addTransaction = (transaction: Transaction): void => {
     if (
       this.lastBlock().index === 0 ||
